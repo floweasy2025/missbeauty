@@ -1,0 +1,14 @@
+create table posts(id uuid primary key default gen_random_uuid(),kind text not null check(kind in('foto','video','novidade','promocao')),title text not null,body text,media_url text,media_type text,created_at timestamptz default now());
+create table bookings(id uuid primary key default gen_random_uuid(),name text not null,phone text not null,service text not null,date date,time text,notes text,status text default 'novo',created_at timestamptz default now());
+create table quotes(id uuid primary key default gen_random_uuid(),name text not null,phone text not null,service text not null,message text,status text default 'novo',created_at timestamptz default now());
+alter table posts enable row level security;alter table bookings enable row level security;alter table quotes enable row level security;
+create policy "ver posts" on posts for select using(true);
+create policy "admin posts" on posts for all to authenticated using(true) with check(true);
+create policy "enviar marcacao" on bookings for insert to anon,authenticated with check(true);
+create policy "admin marcacoes" on bookings for all to authenticated using(true) with check(true);
+create policy "enviar orcamento" on quotes for insert to anon,authenticated with check(true);
+create policy "admin orcamentos" on quotes for all to authenticated using(true) with check(true);
+insert into storage.buckets(id,name,public) values('media','media',true);
+create policy "ver media" on storage.objects for select using(bucket_id='media');
+create policy "admin upload" on storage.objects for insert to authenticated with check(bucket_id='media');
+create policy "admin apagar media" on storage.objects for delete to authenticated using(bucket_id='media');
